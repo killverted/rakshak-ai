@@ -9,6 +9,8 @@ import { Navbar } from '../components/Navbar';
 import { GlassCard, SectionHeader, Spinner, LiveBadge, ProgressBar } from '../components/ui';
 import { BarChart, Donut, LineChart } from '../components/charts';
 import { supabase, type Report, type ActivityEntry, SEVERITY_COLORS, STATUS_COLORS } from '../lib/supabase';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -16,6 +18,10 @@ const fadeUp = {
 };
 
 export function AdminDashboard() {
+  const { user } = useAuth();
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
   const [reports, setReports] = useState<Report[]>([]);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);

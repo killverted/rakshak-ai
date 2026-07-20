@@ -190,7 +190,7 @@ function isQuotaExhausted(message: string): boolean {
 function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)); }
 
 // Latest stable models in priority order — try newest first
-const MODEL_PRIORITY = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite"];
+const MODEL_PRIORITY = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.0-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite"];
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
 
