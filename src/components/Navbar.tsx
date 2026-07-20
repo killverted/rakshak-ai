@@ -16,7 +16,7 @@ const NAV_ITEMS: { label: string; route: Route; protected: boolean }[] = [
 
 export function Navbar() {
   const { route, navigate } = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, profile,signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -44,17 +44,27 @@ export function Navbar() {
         </button>
 
         <div className="hidden lg:flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
-            <button key={item.route} onClick={() => go(item.route)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                route === item.route ? 'text-white bg-white/10 border border-command-border'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}>
-              {item.label}
-            </button>
-          ))}
-        </div>
-
+       
+        {NAV_ITEMS
+  .filter((item) => {
+    if (item.route === "command-center" || item.route === "admin") {
+      return profile?.role === "admin";
+    }
+    return true;
+  })
+  .map((item) => (
+    <button
+      key={item.route}
+      onClick={() => go(item.route)}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        route === item.route
+          ? "text-white bg-white/10 border border-command-border"
+          : "text-slate-400 hover:text-white hover:bg-white/5"
+      }`}
+    >
+      {item.label}
+    </button>
+  ))}
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
             <>
@@ -79,15 +89,26 @@ export function Navbar() {
       {open && (
         <div className="lg:hidden glass border-t border-command-border animate-fade-in">
           <div className="px-5 py-4 flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <button key={item.route} onClick={() => go(item.route)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium ${
-                  route === item.route ? 'text-white bg-white/10' : 'text-slate-300'
-                }`}>
-                {item.label}
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </button>
-            ))}
+          {NAV_ITEMS
+  .filter((item) => {
+    if (item.route === "command-center" || item.route === "admin") {
+      return profile?.role === "admin";
+    }
+    return true;
+  })
+  .map((item) => (
+    <button
+      key={item.route}
+      onClick={() => go(item.route)}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        route === item.route
+          ? "text-white bg-white/10 border border-command-border"
+          : "text-slate-400 hover:text-white hover:bg-white/5"
+      }`}
+    >
+      {item.label}
+    </button>
+  ))}
             <div className="h-px bg-command-border my-2" />
             {user ? (
               <button onClick={signOut} className="btn-ghost text-sm">Sign out ({user.email})</button>
