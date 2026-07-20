@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/auth';
 import { RouterProvider, useRouter, type Route } from './lib/router';
+import { isSupabaseConfigured } from './lib/supabase';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { CitizenDashboard } from './pages/CitizenDashboard';
@@ -13,10 +15,36 @@ import { CommandCenterPage } from './pages/CommandCenterPage';
 import { Loader2 } from 'lucide-react';
 
 const PROTECTED: Route[] = ['citizen', 'report', 'ai-analysis', 'sos', 'map', 'volunteer', 'admin', 'command-center'];
+const ROUTES: Route[] = ['landing', 'login', ...PROTECTED];
 
 function Shell() {
   const { route, navigate } = useRouter();
   const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!ROUTES.includes(route)) {
+      navigate('landing');
+    }
+  }, [route, navigate]);
+
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen grid place-items-center p-6">
+        <div className="glass-card max-w-lg p-8 text-center">
+          <h1 className="font-display font-bold text-2xl text-white mb-3">Supabase configuration required</h1>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Create a <code className="text-electric-400">.env</code> file in the project root with your Supabase
+            credentials:
+          </p>
+          <pre className="mt-4 text-left text-xs font-mono text-slate-300 bg-command-surface/80 border border-command-border rounded-xl p-4 overflow-x-auto">
+{`VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key`}
+          </pre>
+          <p className="text-xs text-slate-500 mt-4">Restart the dev server after adding environment variables.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -55,7 +83,6 @@ function Shell() {
     case 'command-center':
       return <CommandCenterPage />;
     default:
-      navigate('landing');
       return <LandingPage />;
   }
 }

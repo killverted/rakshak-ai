@@ -87,6 +87,7 @@ export type LiveMapProps = {
   center?: [number, number];
   zoom?: number;
   onMapClick?: (lat: number, lng: number) => void;
+  onReportClick?: (report: Report) => void;
   showServices?: boolean;
   className?: string;
 };
@@ -118,7 +119,7 @@ export function LiveMap({
           attribution='&copy; OpenStreetMap contributors'
         />
 
-        <RecenterButton center={center} />
+        /* <RecenterButton center={center} /> */
         <MapEvents onMapClick={onMapClick} />
 
         {/* Report markers */}
@@ -168,7 +169,11 @@ export function LiveMap({
 }
 
 function ReportPopup({ report }: { report: Report }) {
-  const vStatus = report.verification_status || 'pending';
+  console.log("Popup Report:", report);
+  const vStatus =
+  report.verification_status === "pending"
+    ? "Reported"
+    : report.verification_status || "Reported";
   const vColor =
     vStatus === 'verified' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
     : vStatus === 'suspicious' ? 'text-emergency-400 bg-emergency-500/10 border-emergency-500/30'
@@ -219,11 +224,19 @@ function ReportPopup({ report }: { report: Report }) {
       )}
 
       {/* Summary */}
-      {report.ai_summary && (
-        <p className="text-[11px] text-slate-300 leading-relaxed line-clamp-3">
-          {report.ai_summary}
-        </p>
-      )}
+      <div className="flex flex-wrap gap-2 mt-3">
+  <span className="rounded bg-red-500/20 px-2 py-1 text-xs text-red-300">
+    Severity {report.ai_severity}/100
+  </span>
+
+  <span className="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
+    Confidence {report.ai_confidence}%
+  </span>
+
+  <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-300">
+    Authenticity {report.image_authenticity}%
+  </span>
+</div>
 
       {/* Time + reporter */}
       <div className="flex items-center gap-3 text-[10px] text-slate-500 pt-1 border-t border-white/10">
@@ -264,7 +277,44 @@ function ReportPopup({ report }: { report: Report }) {
           )}
         </div>
       )}
+{report.disaster_type?.toLowerCase() === "fire" && (
+  report.nasa_verified ? (
+    <div className="mt-3 rounded-lg bg-green-900/20 border border-green-600 p-3">
+      <strong>🛰 Satellite Verified</strong>
 
+      <p className="text-sm">
+        NASA detected {report.nasa_hotspots} hotspot(s) near this location.
+      </p>
+    </div>
+  ) : (
+    <div className="mt-3 rounded-lg bg-yellow-900/20 border border-yellow-600 p-3">
+      <strong>🛰 Satellite Check</strong>
+
+      <p className="text-sm">
+        No active NASA hotspot detected near this location.
+        <br />
+        This does not necessarily mean the report is false.
+      </p>
+    </div>
+  )
+)}
+{report.disaster_type?.toLowerCase() === "flood" && (<div className="mt-3 rounded-lg bg-blue-900/20 border border-blue-600 p-3">
+  <strong>🌊 Flood Verification</strong>
+
+  <p className="text-sm mt-1">
+    Status:{" "}
+    {report.flood_verified ? "✅ Verified" : "❌ Not Verified"}
+  </p>
+
+  <p className="text-sm">
+    River Discharge: {report.river_discharge ?? "N/A"} m³/s
+  </p>
+
+  <p className="text-xs text-slate-400">
+    Source: {report.flood_source ?? "Open-Meteo"}
+  </p>
+</div>
+)}
       {/* Nearby services count */}
       {report.nearby_services && Array.isArray(report.nearby_services) && report.nearby_services.length > 0 && (
         <div className="pt-1 border-t border-white/10">

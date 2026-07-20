@@ -132,7 +132,11 @@ export function ReportPage() {
       // 2. Fetch nearby services if coordinates available
       let nearby = null;
       if (coords) {
-        nearby = await fetchNearbyServices(coords.lat, coords.lng);
+        nearby = await fetchNearbyServices(
+          coords.lat, 
+          coords.lng,
+          disasterType
+        );
       }
 
       // 3. Insert into reports with all new fields
@@ -164,16 +168,34 @@ export function ReportPage() {
         insertData.weather_alert = weather.alert;
         insertData.weather_summary = weather.summary;
       }
-
-      const { error: reportError } = await supabase
-        .from('reports')
-        .insert(insertData)
-        .select('id')
-        .single();
+      const { data: reportData, error: reportError } = await supabase
+      .from('reports')
+      .insert(insertData)
+      .select('id')
+      .single();
+    
 
       if (reportError) {
         throw new Error(`Report failed: ${reportError.message}`);
       }
+      if (image && reportData?.id) {
+        try {
+          const { data, error } = await supabase.functions.invoke("analyze-image", {
+            body: {
+              reportId: reportData.id,
+              image,
+            },
+          });
+          
+          console.log("AI Response:", data);
+          
+          if (error) {
+            console.error("AI Function Error:", error);
+          }
+        } catch (err) {
+          console.error("AI analysis failed", err);
+        }
+      } 
 
       // 4. Insert into activity_log
       const { error: logError } = await supabase.from('activity_log').insert({

@@ -3,10 +3,23 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function GlassCard({
-  children, className = '', hover = false,
-}: { children: ReactNode; className?: string; hover?: boolean }) {
+  children, className = '', hover = false, onClick,
+}: {
+  children: ReactNode;
+  className?: string;
+  hover?: boolean;
+  onClick?: () => void;
+}) {
   return (
-    <div className={`glass-card ${hover ? 'glass-hover' : ''} ${className}`}>{children}</div>
+    <div
+      className={`glass-card ${hover ? 'glass-hover' : ''} ${className}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
+    >
+      {children}
+    </div>
   );
 }
 

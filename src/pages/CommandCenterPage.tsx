@@ -87,7 +87,11 @@ export function CommandCenterPage() {
       const [services, w] = await Promise.all([
         r.nearby_services && Array.isArray(r.nearby_services) && r.nearby_services.length > 0
           ? Promise.resolve(r.nearby_services as NearbyService[])
-          : fetchNearbyServices(r.lat!, r.lng!),
+          : fetchNearbyServices(
+            r.lat!,
+             r.lng!,
+             r.disaster_type
+            ),
         r.weather_summary
           ? Promise.resolve({
               temp: r.weather_temp ?? 0, humidity: r.weather_humidity ?? 0,

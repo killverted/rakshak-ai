@@ -1,7 +1,8 @@
-import { supabase, type Report, type AIAnalysisResult } from './supabase';
+import { supabase, type Report, type AIAnalysisResult, type NearbyService } from './supabase';
 import { fetchNearbyServices } from './nearby';
 import { fetchWeather, type WeatherData } from './weather';
-
+import { verifyFireWithNASA } from "./nasa";
+import { verifyFlood } from "./flood";
 export type VerificationResult = {
   status: 'verified' | 'pending' | 'suspicious';
   trust_score: number;
@@ -181,18 +182,64 @@ export async function runVerificationPipeline(
   let nearby: NearbyService[] = [];
   if (lat !== null && lng !== null) {
     weather = await fetchWeather(lat, lng);
-    nearby = await fetchNearbyServices(lat, lng);
+    nearby = await fetchNearbyServices(
+      lat,
+      lng,
+      report.disaster_type
+    );
   }
-
+  let nasaResult = {
+    verified: false,
+    hotspotCount: 0,
+  };
+  
+  if (
+    lat !== null &&
+    lng !== null &&
+    report.disaster_type.toLowerCase() === "fire"
+  ) {
+    nasaResult = await verifyFireWithNASA(lat, lng);
+  } 
+  let floodResult = {
+    verified: false,
+    discharge: 0,
+    source: "Open-Meteo Flood API",
+  };
+  
+  if (
+    lat !== null &&
+    lng !== null &&
+    report.disaster_type.toLowerCase() === "flood"
+  ) {
+    console.log("Disaster Type =", report.disaster_type);
+    console.log("VERIFY FLOOD CALLED");
+  
+    floodResult = await verifyFlood(lat, lng);
+  
+    console.log("Flood Result =", floodResult);
+  }
   // Update the report with all verification data
   const updateData: Record<string, unknown> = {
     verification_status: status,
     trust_score: trustScore,
     image_authenticity: aiResult.image_authenticity,
+  
+    nasa_verified: nasaResult.verified,
+    nasa_hotspots: nasaResult.hotspotCount,
+    flood_verified: floodResult.verified,
+river_discharge: floodResult.discharge,
+flood_source: floodResult.source,
+  
     is_duplicate: dupResult.isDuplicate,
     duplicate_of: dupResult.duplicateOf,
     nearby_services: nearby.length > 0 ? nearby : null,
   };
+  console.log("Saving verification", {
+    nasaResult,
+    floodResult,
+    status,
+    nearby,
+  });
 
   if (weather) {
     updateData.weather_temp = weather.temp;

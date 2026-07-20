@@ -26,8 +26,34 @@ function estimateTravelTime(km: number): string {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-export async function fetchNearbyServices(lat: number, lng: number, radiusM = 5000): Promise<NearbyService[]> {
-  const types = Object.keys(QUERIES);
+export async function fetchNearbyServices(
+  lat: number,
+  lng: number,
+  disasterType: string,
+  radiusM = 5000
+): Promise<NearbyService[]> {
+  let types: string[];
+
+  switch (disasterType.toLowerCase()) {
+    case "flood":
+      types = ["shelter", "hospital", "police"];
+      break;
+  
+    case "fire":
+      types = ["fire", "hospital", "police"];
+      break;
+  
+    case "earthquake":
+      types = ["hospital", "shelter", "police"];
+      break;
+  
+    case "cyclone":
+      types = ["shelter", "hospital", "police"];
+      break;
+  
+    default:
+      types = Object.keys(QUERIES);
+  }
   const results: NearbyService[] = [];
 
   for (const type of types) {

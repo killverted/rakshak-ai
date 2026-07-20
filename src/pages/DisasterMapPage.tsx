@@ -31,16 +31,32 @@ export function DisasterMapPage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await supabase.from('reports').select('*').order('created_at', { ascending: false });
-      setReports((data as Report[]) ?? []);
+      const { data } = await supabase
+  .from("reports")
+  .select("*")
+  .order("created_at", { ascending: false });
+
+console.table(
+  data?.map((r) => ({
+    type: r.disaster_type,
+    lat: r.lat,
+    lng: r.lng,
+    image: r.image_url,
+    created: r.created_at,
+  }))
+);
+
+
+setReports((data as Report[]) ?? []);
+      console.log("Fetched Reports:", data);
       setLoading(false);
     })();
   }, []);
-
   const filtered = useMemo(() => {
     if (filter === 'all') return reports;
     return reports.filter((r) => r.disaster_type === filter);
   }, [reports, filter]);
+  console.log("First Report:", filtered[0]);
 
   const types = useMemo(() => [...new Set(reports.map((r) => r.disaster_type))], [reports]);
 
@@ -51,7 +67,11 @@ export function DisasterMapPage() {
       const [services, w] = await Promise.all([
         r.nearby_services && Array.isArray(r.nearby_services) && r.nearby_services.length > 0
           ? Promise.resolve(r.nearby_services as NearbyService[])
-          : fetchNearbyServices(r.lat!, r.lng!),
+          : fetchNearbyServices(
+            r.lat!,
+             r.lng!,
+             r.disaster_type
+            ),
         r.weather_summary
           ? Promise.resolve({
               temp: r.weather_temp ?? 0, humidity: r.weather_humidity ?? 0,
@@ -95,7 +115,14 @@ export function DisasterMapPage() {
               </div>
               <div className="h-[500px] relative">
                 {loading ? <Spinner label="Loading map..." /> : (
-                  <LiveMap reports={filtered} nearbyServices={nearbyServices} showServices={!!selected} zoom={5} />
+                 
+                 <LiveMap
+                 reports={filtered}
+                 nearbyServices={nearbyServices}
+                 showServices={!!selected}
+                 zoom={5}
+                 onReportClick={selectReport}
+               />
                 )}
               </div>
             </GlassCard>
